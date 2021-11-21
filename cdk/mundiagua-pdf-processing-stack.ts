@@ -6,6 +6,14 @@ import { Queue } from "@aws-cdk/aws-sqs";
 import { Runtime } from "@aws-cdk/aws-lambda";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import * as path from "path";
+import {
+  Chain,
+  Choice,
+  Condition,
+  Fail,
+  StateMachine,
+} from "@aws-cdk/aws-stepfunctions";
+import { LambdaInvoke } from "@aws-cdk/aws-stepfunctions-tasks";
 
 interface MundiaguaPdfStackProps extends StackProps {
   stage: string;
@@ -90,9 +98,6 @@ export class MundiaguaPdfProcessingStack extends Stack {
         environment: {
           destinationBucket: pdfProcessingBucket.bucketName,
           sourceBucket: pdfSourceBucket.bucketName,
-          staticsBucket: emailStaticsBucket.bucketName,
-          sendgridApiKeyArn: sendgridSecret.secretArn,
-          messageBirdKeyArn: messageBirdSecret.secretArn,
         },
         bundling: {
           minify: true,
@@ -102,11 +107,108 @@ export class MundiaguaPdfProcessingStack extends Stack {
       }
     );
 
-    sendgridSecret.grantRead(pdfLambda);
-    messageBirdSecret.grantRead(pdfLambda);
-    pdfProcessingBucket.grantReadWrite(pdfLambda);
+    const sendPdfWhatsAppLambda = new NodejsFunction(
+      this,
+      "sendPdfWhatsApp-" + this.props.stage,
+      {
+        memorySize: 512,
+        runtime: Runtime.NODEJS_14_X,
+        handler: "handler",
+        timeout: Duration.seconds(30),
+        entry: path.join(__dirname, `/../src/pdf/send-pdf-whatsapp.ts`),
+        environment: {
+          destinationBucket: pdfProcessingBucket.bucketName,
+          messageBirdKeyArn: messageBirdSecret.secretArn,
+        },
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
+      }
+    );
+
+    const sendPdfEmailLambda = new NodejsFunction(
+      this,
+      "sendPdfEmail-" + this.props.stage,
+      {
+        memorySize: 512,
+        runtime: Runtime.NODEJS_14_X,
+        handler: "handler",
+        timeout: Duration.seconds(30),
+        entry: path.join(__dirname, `/../src/pdf/send-pdf-email.ts`),
+        environment: {
+          destinationBucket: pdfProcessingBucket.bucketName,
+          staticsBucket: emailStaticsBucket.bucketName,
+          sendgridApiKeyArn: sendgridSecret.secretArn,
+        },
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
+      }
+    );
+
+    sendgridSecret.grantRead(sendPdfEmailLambda);
+    messageBirdSecret.grantRead(sendPdfWhatsAppLambda);
+
+    pdfProcessingBucket.grantWrite(pdfLambda);
+    pdfProcessingBucket.grantRead(sendPdfWhatsAppLambda);
+    pdfProcessingBucket.grantRead(sendPdfEmailLambda);
     pdfSourceBucket.grantRead(pdfLambda);
-    emailStaticsBucket.grantRead(pdfLambda);
-    pdfLambda.addEventSource(new SqsEventSource(pdfQueue, { batchSize: 1 }));
+    emailStaticsBucket.grantRead(sendPdfEmailLambda);
+
+    const pdfHandlerInvoke = new LambdaInvoke(this, "Generate PDF file", {
+      lambdaFunction: pdfLambda,
+      outputPath: "$.Payload",
+    });
+
+    const pdfWhatsAppInvoke = new LambdaInvoke(this, "Send pdf by WhatsApp", {
+      lambdaFunction: sendPdfWhatsAppLambda,
+      outputPath: "$.Payload",
+    });
+
+    const pdfEmailInvoke = new LambdaInvoke(this, "Send pdf by Email", {
+      lambdaFunction: sendPdfEmailLambda,
+      outputPath: "$.Payload",
+    });
+
+    const jobFailed = new Fail(this, "fail");
+
+    const chain: Chain = Chain.start(pdfHandlerInvoke).next(
+      new Choice(this, "Check task type")
+        .when(Condition.stringEquals("$.type", "whatsapp"), pdfWhatsAppInvoke)
+        .when(Condition.stringEquals("$.type", "email"), pdfEmailInvoke)
+        .otherwise(jobFailed)
+    );
+
+    const stateMachine = new StateMachine(
+      this,
+      "MundiaguaPDFStateMachine-" + props.stage,
+      { definition: chain }
+    );
+
+    const startStepFunctionLambda = new NodejsFunction(
+      this,
+      "startStepFunction-" + this.props.stage,
+      {
+        memorySize: 512,
+        runtime: Runtime.NODEJS_14_X,
+        handler: "handler",
+        timeout: Duration.seconds(30),
+        entry: path.join(__dirname, `/../src/pdf/start-step-function.ts`),
+        environment: {
+          stepFunctionArn: stateMachine.stateMachineArn,
+        },
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
+      }
+    );
+
+    stateMachine.grantStartExecution(startStepFunctionLambda);
+    startStepFunctionLambda.addEventSource(
+      new SqsEventSource(pdfQueue, { batchSize: 1 })
+    );
   }
 }
