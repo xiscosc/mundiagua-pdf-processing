@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-sfn";
 
 export const handler = async (event: any = {}): Promise<any> => {
+  console.log("start-exec");
   console.log(event);
   const stepFunctionArn: string = process.env.stepFunctionArn!!;
   const client = new SFNClient({});
