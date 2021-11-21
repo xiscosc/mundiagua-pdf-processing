@@ -4,29 +4,19 @@ import {
   getSignedDownloadUrl,
 } from "./helpers/aws-helper";
 
-export const handler = async (event: any = {}): Promise<any> => {
-  await sendPdfByWhatsApp(
-    event.pdfKey,
-    event.template,
-    event.recipient,
-    event.bodyMessage
-  );
+export const handler = async (event: WhatsAppTask): Promise<any> => {
+  await sendPdfByWhatsApp(event);
 };
 
-async function sendPdfByWhatsApp(
-  pdfKey: string,
-  template: string,
-  recipient: string,
-  bodyMessage: { placeholders: [] }
-) {
+async function sendPdfByWhatsApp(task: WhatsAppTask) {
   let params: any[] = [];
-  bodyMessage.placeholders.forEach(function (value: string) {
+  task.bodyMessage.placeholders.forEach(function (value: string) {
     params.push({ type: "text", text: value });
   });
 
   const url = await getSignedDownloadUrl(
     process.env.destinationBucket as string,
-    pdfKey,
+    task.pdfKey,
     600
   );
   const keys = JSON.parse(
@@ -35,12 +25,12 @@ async function sendPdfByWhatsApp(
   const hsm = {
     language: { code: "es" },
     namespace: keys.FB_WHATSAPP_NAMESPACE,
-    templateName: template,
+    templateName: task.template,
     components: [
       {
         type: "header",
         parameters: [
-          { type: "document", document: { url: url, caption: pdfKey } },
+          { type: "document", document: { url: url, caption: task.pdfKey } },
         ],
       },
       { type: "body", parameters: params },
@@ -51,7 +41,7 @@ async function sendPdfByWhatsApp(
     content: { hsm: hsm },
     from: keys.MESSAGEBIRD_WHATSAPP_CHANNEL,
     type: "hsm",
-    to: recipient,
+    to: task.recipient,
   };
 
   const headers = {

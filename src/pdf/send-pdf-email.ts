@@ -5,38 +5,34 @@ import {
   getSecretFromSecretsManager,
 } from "./helpers/aws-helper";
 import sgMail = require("@sendgrid/mail");
+import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
-export const handler = async (event: any = {}): Promise<any> => {
-  await sendPdfByMail(
-    event.pdfKey,
-    event.subject,
-    event.bodyMessage,
-    event.recipient
-  );
+export const handler = async (event: EmailTask): Promise<any> => {
+  await sendPdfByMail(event);
 };
 
-async function sendPdfByMail(
-  pdfKey: string,
-  taskSubject: string,
-  bodyMessage: string,
-  recipient: string
-) {
+async function sendPdfByMail(task: EmailTask) {
   const pdf = await getFileFromS3(
     process.env.destinationBucket as string,
-    pdfKey
+    task.pdfKey
   );
   const template = await getFileFromS3(
     process.env.staticsBucket as string,
     "templates/email.html"
   );
-  const subject = taskSubject ?? "Le adjuntamos la inforamción solicitada";
-  const templateVars = { body: bodyMessage, subject: subject };
-  const msg = {
-    to: recipient,
-    from: "consultas@mundiaguabalear.com",
+  const subject = task.subject ?? "Le adjuntamos la inforamción solicitada";
+  const templateVars = { body: task.bodyMessage, subject: subject };
+  const defaultFrom: EmailData = {
+    name: "Consultas Mundiagua",
+    email: "consultas@mundiaguabalear.com",
+  };
+  const msg: MailDataRequired = {
+    to: task.recipient,
+    from: task.from ?? defaultFrom,
     subject: subject,
     html: Mustache.render(template.toString("utf8"), templateVars),
-    text: bodyMessage,
+    text: task.bodyMessage,
     attachments: [
       {
         content: pdf.toString("base64"),
