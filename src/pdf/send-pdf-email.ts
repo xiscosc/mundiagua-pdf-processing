@@ -9,8 +9,8 @@ import sgMail = require("@sendgrid/mail");
 export const handler = async (event: any = {}): Promise<any> => {
   await sendPdfByMail(
     event.pdfKey,
-    event.taskSubject,
-    event.BodyMessage,
+    event.subject,
+    event.bodyMessage,
     event.recipient
   );
 };
