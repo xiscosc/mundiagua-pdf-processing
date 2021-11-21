@@ -116,9 +116,14 @@ async function sendPdfByWhatsApp(
     "Content-Type": "application/json; charset=utf-8",
   };
 
-  await axios.post("https://conversations.messagebird.com/v1/send", body, {
-    headers: headers,
-  });
+  const response = await axios.post(
+    "https://conversations.messagebird.com/v1/send",
+    body,
+    {
+      headers: headers,
+    }
+  );
+  console.log(response);
 }
 
 async function generatePdf(html: Buffer): Promise<Buffer> {
