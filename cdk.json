@@ -1,0 +1,6 @@
+{
+  "app": "npx ts-node --prefer-ts-exts cdk/mundiagua-pdf-processing.ts",
+  "context": {
+    "aws-cdk:enableDiffNoFail": "true"
+  }
+}

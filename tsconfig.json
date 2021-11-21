@@ -1,0 +1,13 @@
+{
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "removeComments": true,
+    "moduleResolution": "node",
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "sourceMap": true
+  },
+  "include": ["cdk/*", "src/**/*"],
+  "exclude": ["node_modules"]
+}
