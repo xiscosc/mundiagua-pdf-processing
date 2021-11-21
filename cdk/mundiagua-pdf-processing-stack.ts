@@ -104,7 +104,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
 
     sendgridSecret.grantRead(pdfLambda);
     messageBirdSecret.grantRead(pdfLambda);
-    pdfProcessingBucket.grantWrite(pdfLambda);
+    pdfProcessingBucket.grantReadWrite(pdfLambda);
     pdfSourceBucket.grantRead(pdfLambda);
     emailStaticsBucket.grantRead(pdfLambda);
     pdfLambda.addEventSource(new SqsEventSource(pdfQueue, { batchSize: 1 }));
