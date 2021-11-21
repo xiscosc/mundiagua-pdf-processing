@@ -5,6 +5,7 @@ import { Secret } from "@aws-cdk/aws-secretsmanager";
 import { Queue } from "@aws-cdk/aws-sqs";
 import { Runtime } from "@aws-cdk/aws-lambda";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
+import { LambdaInvoke } from "@aws-cdk/aws-stepfunctions-tasks";
 import * as path from "path";
 import {
   Chain,
@@ -13,7 +14,6 @@ import {
   Fail,
   StateMachine,
 } from "@aws-cdk/aws-stepfunctions";
-import { LambdaInvoke } from "@aws-cdk/aws-stepfunctions-tasks";
 
 interface MundiaguaPdfStackProps extends StackProps {
   stage: string;
