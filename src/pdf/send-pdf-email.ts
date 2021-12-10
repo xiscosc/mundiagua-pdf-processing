@@ -22,7 +22,10 @@ async function sendPdfByMail(task: EmailTask) {
     "templates/email.html"
   );
   const subject = task.subject ?? "Le adjuntamos la inforamción solicitada";
-  const templateVars = { body: task.bodyMessage, subject: subject };
+  const templateVars = {
+    body: task.bodyMessage.replace(/(?:\r\n|\r|\n)/g, "<br>"),
+    subject: subject,
+  };
   const defaultFrom: EmailData = {
     name: "Consultas Mundiagua",
     email: "consultas@mundiaguabalear.com",
