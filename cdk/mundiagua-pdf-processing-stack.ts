@@ -1,9 +1,9 @@
-import { SqsEventSource } from "@aws-cdk/aws-lambda-event-sources";
+import { SnsEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import { App, Duration, Stack, StackProps } from "@aws-cdk/core";
 import { BlockPublicAccess, Bucket, BucketProps } from "@aws-cdk/aws-s3";
 import { Secret } from "@aws-cdk/aws-secretsmanager";
-import { Queue } from "@aws-cdk/aws-sqs";
 import { Runtime } from "@aws-cdk/aws-lambda";
+import { Topic } from "@aws-cdk/aws-sns";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { LambdaInvoke } from "@aws-cdk/aws-stepfunctions-tasks";
 import * as path from "path";
@@ -27,20 +27,6 @@ export class MundiaguaPdfProcessingStack extends Stack {
   constructor(scope: App, id: string, props: MundiaguaPdfStackProps) {
     super(scope, id, props);
     this.props = props;
-
-    const deadLetterQueue = new Queue(
-      this,
-      "dlq-sqs--pdf-mundiagua-" + this.props.stage,
-      { visibilityTimeout: Duration.seconds(5) }
-    );
-
-    const pdfQueue = new Queue(this, "sqs-pdf-mundiagua-" + this.props.stage, {
-      visibilityTimeout: Duration.seconds(120),
-      deadLetterQueue: {
-        queue: deadLetterQueue,
-        maxReceiveCount: 1,
-      },
-    });
 
     const pdfBucketProps: BucketProps = {
       bucketName: "pdf-processing-mundiagua-" + this.props.stage,
@@ -207,8 +193,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
     );
 
     stateMachine.grantStartExecution(startStepFunctionLambda);
-    startStepFunctionLambda.addEventSource(
-      new SqsEventSource(pdfQueue, { batchSize: 1 })
-    );
+    const topic = new Topic(this, "topic-pdf-mundiagua-" + this.props.stage);
+    startStepFunctionLambda.addEventSource(new SnsEventSource(topic));
   }
 }
