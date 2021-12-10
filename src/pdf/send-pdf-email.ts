@@ -23,7 +23,7 @@ async function sendPdfByMail(task: EmailTask) {
   );
   const subject = task.subject ?? "Le adjuntamos la inforamción solicitada";
   const templateVars = {
-    body: task.bodyMessage.replace(/(?:\r\n|\r|\n)/g, "<br>"),
+    body: task.bodyMessage,
     subject: subject,
   };
   const defaultFrom: EmailData = {
