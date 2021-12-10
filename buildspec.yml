@@ -10,7 +10,7 @@ phases:
   pre_build:
     commands:
       - echo Installing source NPM dependencies...
-      - npm install
+      - npm ci
   build:
     commands:
       - echo Runing cdk
