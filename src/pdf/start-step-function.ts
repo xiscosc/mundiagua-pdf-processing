@@ -11,7 +11,7 @@ export const handler = async (event: any = {}): Promise<any> => {
     event.Records.map(async (entry: any) => {
       const params: StartExecutionCommandInput = {
         stateMachineArn: stepFunctionArn,
-        input: entry.body,
+        input: entry.Sns.Message,
       };
       await client.send(new StartExecutionCommand(params));
     })
