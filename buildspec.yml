@@ -13,6 +13,7 @@ phases:
       - npm ci
   build:
     commands:
+      - npm run build
       - echo Runing cdk
       - npx cdk diff
       - npx cdk deploy --all --require-approval never
