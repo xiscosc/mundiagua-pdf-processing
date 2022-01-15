@@ -1,11 +1,11 @@
-import { SnsEventSource } from "@aws-cdk/aws-lambda-event-sources";
-import { App, Duration, Stack, StackProps } from "@aws-cdk/core";
-import { BlockPublicAccess, Bucket, BucketProps } from "@aws-cdk/aws-s3";
-import { Secret } from "@aws-cdk/aws-secretsmanager";
-import { Runtime } from "@aws-cdk/aws-lambda";
-import { Topic } from "@aws-cdk/aws-sns";
-import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
-import { LambdaInvoke } from "@aws-cdk/aws-stepfunctions-tasks";
+import { SnsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import { App, Duration, Stack, StackProps } from "aws-cdk-lib/core";
+import { BlockPublicAccess, Bucket, BucketProps } from "aws-cdk-lib/aws-s3";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { Topic } from "aws-cdk-lib/aws-sns";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as path from "path";
 import {
   Chain,
@@ -13,7 +13,7 @@ import {
   Condition,
   Fail,
   StateMachine,
-} from "@aws-cdk/aws-stepfunctions";
+} from "aws-cdk-lib/aws-stepfunctions";
 
 interface MundiaguaPdfStackProps extends StackProps {
   stage: string;

@@ -30,9 +30,12 @@ async function sendPdfByMail(task: EmailTask) {
     name: "Consultas Mundiagua",
     email: "consultas@mundiaguabalear.com",
   };
+
+  const replyTo = task.from ? [defaultFrom, task.from] : [defaultFrom];
   const msg: MailDataRequired = {
     to: task.recipient,
     from: task.from ?? defaultFrom,
+    replyToList: replyTo,
     subject: subject,
     html: Mustache.render(template.toString("utf8"), templateVars),
     text: task.bodyMessage,

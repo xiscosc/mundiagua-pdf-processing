@@ -10,7 +10,7 @@ phases:
   pre_build:
     commands:
       - echo Installing source NPM dependencies...
-      - npm ci
+      - npm ci --cache .npm --prefer-offline
   build:
     commands:
       - npm run build
@@ -22,4 +22,4 @@ phases:
       - echo Build completed on `date`
 cache:
   paths:
-    - "node_modules/**/*"
+    - ".npm/"
