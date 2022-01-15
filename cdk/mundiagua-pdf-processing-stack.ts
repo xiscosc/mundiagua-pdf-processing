@@ -1,5 +1,5 @@
 import { SnsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
-import { App, Duration, Stack, StackProps } from "aws-cdk-lib/core";
+import { App, Duration, Stack, StackProps } from "aws-cdk-lib";
 import { BlockPublicAccess, Bucket, BucketProps } from "aws-cdk-lib/aws-s3";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
