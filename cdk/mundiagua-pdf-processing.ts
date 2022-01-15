@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import { MundiaguaPdfProcessingStack } from "./mundiagua-pdf-processing-stack";
-import { App } from "aws-cdk-lib/core";
+import { App } from "aws-cdk-lib";
 
 const app = new App();
 const stage: string = process.env.stage as string;

@@ -31,7 +31,7 @@ async function sendPdfByMail(task: EmailTask) {
     email: "consultas@mundiaguabalear.com",
   };
 
-  const replyTo = task.from ? [defaultFrom, task.from] : [defaultFrom];
+  const replyTo = task.from ? [task.from, defaultFrom] : [defaultFrom];
   const msg: MailDataRequired = {
     to: task.recipient,
     from: task.from ?? defaultFrom,
