@@ -16,13 +16,14 @@
     "format:fix": "prettier --write --loglevel warn ."
   },
   "devDependencies": {
-    "aws-cdk-lib": "2.8.0",
     "@tsconfig/node14": "1.0.1",
     "@types/jest": "27.0.3",
     "@types/mustache": "4.1.2",
     "@types/node": "10.17.27",
     "@types/puppeteer": "5.4.4",
     "@types/uuid": "8.3.1",
+    "aws-cdk-lib": "2.8.0",
+    "constructs": "10.0.34",
     "esbuild": "0.13.14",
     "husky": "7.0.2",
     "jest": "27.3.1",
