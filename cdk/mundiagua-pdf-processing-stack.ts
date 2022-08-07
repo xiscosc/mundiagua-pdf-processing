@@ -3,6 +3,7 @@ import { App, Duration, Stack, StackProps } from "aws-cdk-lib";
 import { BlockPublicAccess, Bucket, BucketProps } from "aws-cdk-lib/aws-s3";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { Effect, Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Topic } from "aws-cdk-lib/aws-sns";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
@@ -132,6 +133,18 @@ export class MundiaguaPdfProcessingStack extends Stack {
           sourceMap: true,
         },
       }
+    );
+
+    const sendEmailPolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["ses:SendEmail", "ses:SendRawEmail"],
+      resources: ["*"],
+    });
+
+    sendPdfEmailLambda.role?.attachInlinePolicy(
+      new Policy(this, `send-email-policy-${this.props.stage}`, {
+        statements: [sendEmailPolicy],
+      })
     );
 
     sendgridSecret.grantRead(sendPdfEmailLambda);

@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import Mustache from "mustache";
+import { getFileFromS3 } from "./helpers/aws-helper";
 import {
-  getFileFromS3,
-  getSecretFromSecretsManager,
-} from "./helpers/aws-helper";
-import sgMail = require("@sendgrid/mail");
-import { MailDataRequired } from "@sendgrid/helpers/classes/mail";
-import { EmailData } from "@sendgrid/helpers/classes/email-address";
+  SESv2Client,
+  SendEmailCommand,
+  SendEmailCommandInput,
+} from "@aws-sdk/client-sesv2";
+import { createMimeMessage } from "mimetext";
+import { TextEncoder } from "util";
 
 export const handler = async (event: EmailTask): Promise<any> => {
   await sendPdfByMail(event);
@@ -26,31 +27,36 @@ async function sendPdfByMail(task: EmailTask) {
     body: task.bodyMessage,
     subject: subject,
   };
-  const defaultFrom: EmailData = {
+
+  const defaultFrom = {
     name: "Consultas Mundiagua",
-    email: "consultas@mundiaguabalear.com",
+    addr: "consultas@mundiaguabalear.com>",
   };
+  const from = task.from
+    ? { name: task.from.name, addr: task.from.email }
+    : defaultFrom;
+  const replyTo = task.from
+    ? `${task.from.email},consultas@mundiaguabalear.com`
+    : "consultas@mundiaguabalear.com";
+  const htmlBody = Mustache.render(template.toString("utf8"), templateVars);
 
-  const replyTo = task.from ? [task.from, defaultFrom] : [defaultFrom];
-  const msg: MailDataRequired = {
-    to: task.recipient,
-    from: task.from ?? defaultFrom,
-    replyToList: replyTo,
-    subject: subject,
-    html: Mustache.render(template.toString("utf8"), templateVars),
-    text: task.bodyMessage,
-    attachments: [
-      {
-        content: pdf.toString("base64"),
-        filename: uuidv4() + ".pdf",
-        type: "application/pdf",
-        disposition: "attachment",
+  const msg = createMimeMessage();
+  msg.setSender(from);
+  msg.setRecipient(task.recipient);
+  msg.setSubject(subject);
+  msg.setHeader("Reply-To", replyTo);
+  msg.setMessage("text/plain", task.bodyMessage);
+  msg.setMessage("text/html", htmlBody);
+  // @ts-ignore
+  msg.setAttachment(`${uuidv4()}.pdf`, "application/pdf", msg.toBase64(pdf));
+  const mailParams: SendEmailCommandInput = {
+    Content: {
+      Raw: {
+        Data: new TextEncoder().encode(msg.asRaw()),
       },
-    ],
+    },
   };
 
-  sgMail.setApiKey(
-    await getSecretFromSecretsManager(process.env.sendgridApiKeyArn as string)
-  );
-  await sgMail.send(msg);
+  const client = new SESv2Client({});
+  await client.send(new SendEmailCommand(mailParams));
 }
