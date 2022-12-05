@@ -72,7 +72,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "pdfGenerator-" + this.props.stage,
       {
         memorySize: 1024,
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         handler: "handler",
         timeout: Duration.minutes(2),
         entry: path.join(__dirname, `/../src/pdf/generate-pdf.ts`),
@@ -93,7 +93,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "sendPdfWhatsApp-" + this.props.stage,
       {
         memorySize: 512,
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/send-pdf-whatsapp.ts`),
@@ -113,7 +113,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "sendPdfEmail-" + this.props.stage,
       {
         memorySize: 512,
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/send-pdf-email.ts`),
@@ -183,7 +183,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "startStepFunction-" + this.props.stage,
       {
         memorySize: 512,
-        runtime: Runtime.NODEJS_16_X,
+        runtime: Runtime.NODEJS_18_X,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/start-step-function.ts`),
