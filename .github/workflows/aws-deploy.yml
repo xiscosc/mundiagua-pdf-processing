@@ -1,0 +1,90 @@
+name: aws-deploy
+run-name: Deploy to AWS
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: "eu-west-1"
+
+jobs:
+  deploy-dev:
+    environment: dev
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.x
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: "eu-west-1"
+
+      - name: Diff stack
+        run: npx cdk diff
+        env:
+          stage: dev
+          messageBirdArn: ${{ secrets.MESSAGEBIRD_ARN }}
+
+      - name: Deploy stack
+        run: npx cdk deploy --all --require-approval never
+        env:
+          stage: dev
+          messageBirdArn: ${{ secrets.MESSAGEBIRD_ARN }}
+
+  deploy-prod:
+    name: Deploy to prod
+    environment: prod
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.x
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: "eu-west-1"
+
+      - name: Diff stack
+        run: npx cdk diff
+        env:
+          stage: prod
+          messageBirdArn: ${{ secrets.MESSAGEBIRD_ARN }}
+
+      - name: Deploy stack
+        run: npx cdk deploy --all --require-approval never
+        env:
+          stage: prod
+          messageBirdArn: ${{ secrets.MESSAGEBIRD_ARN }}
