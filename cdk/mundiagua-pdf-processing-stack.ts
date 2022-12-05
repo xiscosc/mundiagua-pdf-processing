@@ -19,7 +19,6 @@ import {
 interface MundiaguaPdfStackProps extends StackProps {
   stage: string;
   messageBirdArn: string;
-  sendgridApiKeyArn: string;
 }
 
 export class MundiaguaPdfProcessingStack extends Stack {
@@ -62,11 +61,6 @@ export class MundiaguaPdfProcessingStack extends Stack {
       sourceBucketProps
     );
 
-    const sendgridSecret = Secret.fromSecretCompleteArn(
-      this,
-      "sengrid-secret-" + this.props.stage,
-      this.props.sendgridApiKeyArn
-    );
     const messageBirdSecret = Secret.fromSecretCompleteArn(
       this,
       "messagebird-secret-" + this.props.stage,
@@ -78,7 +72,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "pdfGenerator-" + this.props.stage,
       {
         memorySize: 1024,
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         handler: "handler",
         timeout: Duration.minutes(2),
         entry: path.join(__dirname, `/../src/pdf/generate-pdf.ts`),
@@ -99,7 +93,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "sendPdfWhatsApp-" + this.props.stage,
       {
         memorySize: 512,
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/send-pdf-whatsapp.ts`),
@@ -119,14 +113,13 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "sendPdfEmail-" + this.props.stage,
       {
         memorySize: 512,
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/send-pdf-email.ts`),
         environment: {
           destinationBucket: pdfProcessingBucket.bucketName,
           staticsBucket: emailStaticsBucket.bucketName,
-          sendgridApiKeyArn: sendgridSecret.secretArn,
         },
         bundling: {
           minify: true,
@@ -147,7 +140,6 @@ export class MundiaguaPdfProcessingStack extends Stack {
       })
     );
 
-    sendgridSecret.grantRead(sendPdfEmailLambda);
     messageBirdSecret.grantRead(sendPdfWhatsAppLambda);
 
     pdfProcessingBucket.grantWrite(pdfLambda);
@@ -191,7 +183,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       "startStepFunction-" + this.props.stage,
       {
         memorySize: 512,
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_16_X,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/start-step-function.ts`),
