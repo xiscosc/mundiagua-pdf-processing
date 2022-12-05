@@ -1,4 +1,3 @@
-import "chrome-aws-lambda";
 import { v4 as uuidv4 } from "uuid";
 const puppeteer = require("puppeteer-core");
 const Chromium = require("@sparticuz/chromium");
