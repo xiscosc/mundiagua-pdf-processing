@@ -1,6 +1,7 @@
 import "chrome-aws-lambda";
 import { v4 as uuidv4 } from "uuid";
-import Chromium = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
+const Chromium = require("@sparticuz/chromium");
 import { getFileFromS3, saveFileToS3 } from "./helpers/aws-helper";
 
 export const handler = async (event: PdfTask): Promise<any> => {
@@ -15,7 +16,7 @@ export const handler = async (event: PdfTask): Promise<any> => {
 };
 
 async function generatePdf(html: Buffer): Promise<Buffer> {
-  let browser = await Chromium.puppeteer.launch({
+  let browser = await puppeteer.launch({
     args: Chromium.args,
     defaultViewport: Chromium.defaultViewport,
     executablePath: await Chromium.executablePath,

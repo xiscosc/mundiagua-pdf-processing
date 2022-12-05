@@ -83,7 +83,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
         bundling: {
           minify: true,
           sourceMap: true,
-          nodeModules: ["chrome-aws-lambda", "puppeteer-core"],
+          nodeModules: ["@sparticuz/chromium", "puppeteer-core"],
         },
       }
     );
