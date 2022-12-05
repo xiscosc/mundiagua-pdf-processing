@@ -11,6 +11,7 @@ import {
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Stream } from "stream";
 
 export async function getFileFromS3(
   bucket: string,
@@ -22,7 +23,7 @@ export async function getFileFromS3(
     Key: key,
   };
   const file = await client.send(new GetObjectCommand(params));
-  return getStream.buffer(file.Body);
+  return getStream.buffer(file.Body as Stream);
 }
 
 export async function saveFileToS3(
