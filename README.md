@@ -1,4 +1,4 @@
-# Mundiagua PDF Processing
+# Mundiagua PDF Processing ![aws](https://github.com/xiscosc/mundiagua-pdf-processing/actions/workflows/aws-deploy.yml/badge.svg)
 
 Generates pdf documents from source in S3 and sends them by mail or WhatsApp.
 
