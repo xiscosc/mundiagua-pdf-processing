@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 const puppeteer = require("puppeteer-core");
 const Chromium = require("@sparticuz/chromium");
 import { getFileFromS3, saveFileToS3 } from "./helpers/aws-helper";
@@ -9,7 +8,7 @@ export const handler = async (event: PdfTask): Promise<any> => {
     event.bodyKey
   );
   const pdf = await generatePdf(html);
-  const filename = uuidv4() + ".pdf";
+  const filename = event.bodyKey + ".pdf";
   await saveFileToS3(process.env.destinationBucket as string, filename, pdf);
   return { ...event, pdfKey: filename };
 };

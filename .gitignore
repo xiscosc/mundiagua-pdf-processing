@@ -9,3 +9,5 @@ src/*/node_modules
 cdk.out
 .idea
 dist
+
+ .DS_Store

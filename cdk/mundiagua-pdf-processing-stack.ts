@@ -2,7 +2,7 @@ import { SnsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { App, Duration, Stack, StackProps } from "aws-cdk-lib";
 import { BlockPublicAccess, Bucket, BucketProps } from "aws-cdk-lib/aws-s3";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { Architecture, Runtime } from "aws-cdk-lib/aws-lambda";
 import { Effect, Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Topic } from "aws-cdk-lib/aws-sns";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -14,6 +14,7 @@ import {
   Condition,
   Fail,
   StateMachine,
+  Succeed,
 } from "aws-cdk-lib/aws-stepfunctions";
 
 interface MundiaguaPdfStackProps extends StackProps {
@@ -94,6 +95,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       {
         memorySize: 512,
         runtime: Runtime.NODEJS_18_X,
+        architecture: Architecture.ARM_64,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/send-pdf-whatsapp.ts`),
@@ -114,6 +116,7 @@ export class MundiaguaPdfProcessingStack extends Stack {
       {
         memorySize: 512,
         runtime: Runtime.NODEJS_18_X,
+        architecture: Architecture.ARM_64,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/send-pdf-email.ts`),
@@ -164,11 +167,13 @@ export class MundiaguaPdfProcessingStack extends Stack {
     });
 
     const jobFailed = new Fail(this, "fail");
+    const jobOk = new Succeed(this, "ok");
 
     const chain: Chain = Chain.start(pdfHandlerInvoke).next(
       new Choice(this, "Check task type")
         .when(Condition.stringEquals("$.type", "whatsapp"), pdfWhatsAppInvoke)
         .when(Condition.stringEquals("$.type", "email"), pdfEmailInvoke)
+        .when(Condition.stringEquals("$.type", "download"), jobOk)
         .otherwise(jobFailed)
     );
 
@@ -182,8 +187,9 @@ export class MundiaguaPdfProcessingStack extends Stack {
       this,
       "startStepFunction-" + this.props.stage,
       {
-        memorySize: 512,
+        memorySize: 128,
         runtime: Runtime.NODEJS_18_X,
+        architecture: Architecture.ARM_64,
         handler: "handler",
         timeout: Duration.seconds(30),
         entry: path.join(__dirname, `/../src/pdf/start-step-function.ts`),
